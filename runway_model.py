@@ -657,15 +657,14 @@ def run_pplm_example(pretrained_model="gpt2-medium",
         gm_scale=0.9,
         kl_scale=0.01,
         seed=0,
-        no_cuda=False,
         colorama=False):
     # set Random seed
     torch.manual_seed(seed)
     np.random.seed(seed)
 
     # set the device
-    device = "cuda" if torch.cuda.is_available() and not no_cuda else "cpu"
-
+    device = "cuda" if torch.cuda.is_available()  else "cpu"
+    
     if discrim == 'generic':
         set_generic_model_params(discrim_weights, discrim_meta)
 
@@ -673,8 +672,7 @@ def run_pplm_example(pretrained_model="gpt2-medium",
         pretrained_model = DISCRIMINATOR_MODELS_PARAMS[discrim][
             "pretrained_model"
         ]
-        #print("discrim = {}, pretrained_model set "
-              #"to discriminator's = {}".format(discrim, pretrained_model))
+        print("discrim = {}, pretrained_model set to discriminator's = {}".format(discrim, pretrained_model))
 
     # load pretrained model
     model = GPT2LMHeadModel.from_pretrained(
@@ -773,27 +771,22 @@ def run_pplm_example(pretrained_model="gpt2-medium",
     return pert_gen_text.replace('<|endoftext|>', '')
 
 
-@runway.setup(options={"Perturbation_type" : category(choices=['bag-of-words', 'discriminator'], default='bag-of-words')})
+@runway.setup(options={"size" : category(default='distilgpt2', choices=['gpt2-medium', 'distilgpt2', 'gpt2'])})
 def setup(opts):
-    
-    size = 'gpt2-medium'
-    perturbation = opts["Perturbation_type"]
-    return {"size" : size,
-            "perturbation" : perturbation }
+    size = opts["size"]
+    return {"size" : size}
 
 
 command_inputs = {
                 "conditional_text" : text(description="Prefix texts to condition on"),
-                "bag_of_words" : category(choices=['legal', 'military', 'politics', 'religion', 'science', 'space', 'technology'], default='military'), 
-                "Discriminator" : category(choices=['clickbait', 'sentiment'], default='sentiment'),
-                "clickbait_class_label" : category(choices=["non_clickbait", "clickbait"], default='non_clickbait'),
-                "sentiment_class_label" : category(choices=['very_positive', 'very_negative'], default='very_positive'),
-                "length" : number(min=20, default=100, step=5, description="Length of generated text"),
+                "control_attributes" : category(default='technology', choices=['legal', 'military', 'politics', 'religion', 'science', 'space', 'technology', 'non_clickbait', 'clickbait', 'very_positive', 'very_negative']),
+                "length" : number(min=10, default=100, step=5, max=600, description="Length of generated text"),
                 "stepsize" : number(min=0.03, default=0.03, step=0.01, max=0.1, description="Step Size for intensity of topic control."),
                 "num_iterations" : number(default=3, step=1, max=5, description="Number of iterations"),
                 "window_length" : number(default=5, step=1, max=10, description="Length of past which is being optimized"),
-                "kl_scale" : number(default=0.01, step=0.01, max=0.3, description="KL-Loss Coefficient"),
-                "temperature" : number(default=1.0, step=0.1, max=4, description="Temperature of generation")
+                "kl_scale" : number(default=0.01, step=0.01, max=0.1, description="KL-Loss Coefficient"),
+                "temperature" : number(default=1.0, step=0.1, max=4, description="Temperature of generation"),
+                "gamma" : number(default=1.0, step=0.5, max=4, description="Gamma Parameter") 
                 }
 
 command_outputs = {"output_text" : text}
@@ -801,43 +794,38 @@ command_outputs = {"output_text" : text}
 
 @runway.command("generate_text", inputs=command_inputs, outputs=command_outputs, description="Generate text using the PPLM model")
 def generate_text(model, inputs):
-    pretrained_model = 'gpt2-medium'
+    pretrained_model = model['size']
     cond_text = inputs["conditional_text"]
-    
-    
-    bow_choice = inputs["bag_of_words"]
-    d_choice = inputs["Discriminator"]
-    click_label = inputs["clickbait_class_label"]
-    senti_label = inputs["sentiment_class_label"]
-    length = inputs["length"]
-    stepsize = inputs["stepsize"]
-    top_k = 10
     num_iterations = inputs["num_iterations"]
     window_length = inputs["window_length"]
+    length = inputs["length"]
+    stepsize = inputs["stepsize"]
+    kl_scale = inputs["kl_scale"]
+    temperature = inputs["temperature"]
+    gamma = inputs["gamma"]
+    top_k = 10
     horizon_length = 1
     decay = True
     gm_scale = 0.95
-    kl_scale = inputs["kl_scale"]
-    temperature = inputs["temperature"]
-    no_cuda = torch.cuda.is_available()
-    mode = model["perturbation"]
-
-    if mode == "discriminator":
-        discrim = d_choice
-        bag_of_words = None
-        gamma = 1.0
-        if d_choice == 'clickbait':
-            class_label = DISCRIMINATOR_MODELS_PARAMS[d_choice]["class_vocab"][click_label]
-        else:
-            class_label = DISCRIMINATOR_MODELS_PARAMS[d_choice]["class_vocab"][senti_label]
-
-    else:
-        bag_of_words = bow_choice
+    control_attribute = inputs["control_attributes"]
+    
+    
+    if control_attribute in ['legal', 'military', 'politics', 'religion', 'science', 'space', 'technology']:
+        bag_of_words = control_attribute
         d_choice = None
-        gamma = 1.5
         class_label = -1
     
-    out_text = run_pplm_example(pretrained_model="gpt2-medium",
+    else:
+        bag_of_words = None        
+        if control_attribute in ['clickbait', 'non_clickbait']:
+            print(control_attribute)
+            d_choice = 'clickbait'
+            class_label = DISCRIMINATOR_MODELS_PARAMS['clickbait']['class_vocab'][control_attribute]
+        else:
+            d_choice = 'sentiment'
+            class_label = DISCRIMINATOR_MODELS_PARAMS['sentiment']['class_vocab'][control_attribute]
+
+    out_text = run_pplm_example(pretrained_model=pretrained_model,
                     cond_text=cond_text,
                     uncond=False,
                     num_samples=1,
@@ -859,11 +847,11 @@ def generate_text(model, inputs):
                     gamma=gamma,
                     gm_scale=gm_scale,
                     seed=0,
-                    no_cuda=no_cuda,
-                    colorama=False)
+                    colorama=False,
+                    kl_scale=kl_scale)
 
         
-    return {"output_text" : out_text}
+    return {"output_text" : cond_text + out_text}
 
 if __name__ == "__main__":
     runway.run()

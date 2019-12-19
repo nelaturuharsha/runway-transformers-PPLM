@@ -9,7 +9,3 @@ boto3
 requests
 # For OpenAI GPT
 regex != 2019.12.17
-# For XLNet
-sentencepiece
-# For XLM
-sacremoses
