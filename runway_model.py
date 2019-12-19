@@ -851,7 +851,7 @@ def generate_text(model, inputs):
                     kl_scale=kl_scale)
 
         
-    return {"output_text" : cond_text + out_text}
+    return {"output_text" : out_text}
 
 if __name__ == "__main__":
     runway.run()
