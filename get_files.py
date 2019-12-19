@@ -54,12 +54,14 @@ from transformers import GPT2Tokenizer
 from transformers.file_utils import cached_path
 from transformers.modeling_gpt2 import GPT2LMHeadModel
 
-model = GPT2LMHeadModel.from_pretrained(
-        'gpt2-medium',
+
+for size in ['gpt2-medium', 'gpt2', 'distilgpt2']:
+    model = GPT2LMHeadModel.from_pretrained(
+       	size,
         output_hidden_states=True
     )
 
-tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium')
+    tokenizer = GPT2Tokenizer.from_pretrained(size)
 
 def get_classifier(name):
 
