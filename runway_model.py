@@ -789,14 +789,9 @@ command_inputs = {
                 "clickbait_class_label" : category(choices=["non_clickbait", "clickbait"], default='non_clickbait'),
                 "sentiment_class_label" : category(choices=['very_positive', 'very_negative'], default='very_positive'),
                 "length" : number(min=20, default=100, step=5, description="Length of generated text"),
-                "stepsize" : number(min=0.03, default=0.03, step=0.01, max=0.1 description="Step Size for intensity of topic control."),
-                "top_k" : number(default=10, step=1, description="Top-K outputs"),
-                "num_iterations" : number(default=3, step=1, max=5 description="Number of iterations"),
-                "window_length" : number(default=1, step=1, max=10, description="Length of past which is being optimized"),
-                "horizon_length" : number(default=1, step=1, max=20, description="Length of past which is being optimized"),
-                "decay" : boolean(default=True, description="Whether to decay or not"),
-                "gamma" : number(default=1.0, step=0.1, max=2 description="Gamma parameter"),
-                "gm_scale" : number(default=0.9, step=0.01, max=1, description="gm scaling term for the model"),
+                "stepsize" : number(min=0.03, default=0.03, step=0.01, max=0.1, description="Step Size for intensity of topic control."),
+                "num_iterations" : number(default=3, step=1, max=5, description="Number of iterations"),
+                "window_length" : number(default=5, step=1, max=10, description="Length of past which is being optimized"),
                 "kl_scale" : number(default=0.01, step=0.01, max=0.3, description="KL-Loss Coefficient"),
                 "temperature" : number(default=1.0, step=0.1, max=4, description="Temperature of generation")
                 }
@@ -816,13 +811,12 @@ def generate_text(model, inputs):
     senti_label = inputs["sentiment_class_label"]
     length = inputs["length"]
     stepsize = inputs["stepsize"]
-    top_k = inputs["top_k"]
+    top_k = 10
     num_iterations = inputs["num_iterations"]
     window_length = inputs["window_length"]
-    horizon_length = inputs["horizon_length"]
-    decay = inputs["decay"]
-    gamma = inputs["gamma"]
-    gm_scale = inputs["gm_scale"]
+    horizon_length = 1
+    decay = True
+    gm_scale = 0.95
     kl_scale = inputs["kl_scale"]
     temperature = inputs["temperature"]
     no_cuda = torch.cuda.is_available()
@@ -830,7 +824,8 @@ def generate_text(model, inputs):
 
     if mode == "discriminator":
         discrim = d_choice
-        bag_of_words = None 
+        bag_of_words = None
+        gamma = 1.0
         if d_choice == 'clickbait':
             class_label = DISCRIMINATOR_MODELS_PARAMS[d_choice]["class_vocab"][click_label]
         else:
@@ -839,10 +834,9 @@ def generate_text(model, inputs):
     else:
         bag_of_words = bow_choice
         d_choice = None
+        gamma = 1.5
         class_label = -1
-    print(bag_of_words)
-    print(d_choice)
-    print(class_label)
+    
     out_text = run_pplm_example(pretrained_model="gpt2-medium",
                     cond_text=cond_text,
                     uncond=False,
