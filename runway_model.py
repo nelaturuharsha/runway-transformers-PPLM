@@ -818,7 +818,7 @@ def generate_text(model, inputs):
     else:
         bag_of_words = None        
         if control_attribute in ['clickbait', 'non_clickbait']:
-            print(control_attribute)
+      
             d_choice = 'clickbait'
             class_label = DISCRIMINATOR_MODELS_PARAMS['clickbait']['class_vocab'][control_attribute]
         else:
