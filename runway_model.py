@@ -727,9 +727,7 @@ def run_pplm_example(pretrained_model="gpt2-medium",
     )
 
     # untokenize unperturbed text
-    unpert_gen_text = tokenizer.decode(unpert_gen_tok_text.tolist()[0])
-
-    generated_texts = []
+    
 
     bow_word_ids = set()
     if bag_of_words and colorama:
@@ -809,22 +807,27 @@ def generate_text(model, inputs):
     gm_scale = 0.95
     control_attribute = inputs["control_attributes"]
     
-    
+    print(control_attribute)
     if control_attribute in ['legal', 'military', 'politics', 'religion', 'science', 'space', 'technology']:
         bag_of_words = control_attribute
         d_choice = None
         class_label = -1
-    
+        print("{} is in Bag of words hence, it has been chosen.".format(str(bag_of_words)))
+        print("{} is the discriminator".format(str(d_choice)))
     else:
         bag_of_words = None        
         if control_attribute in ['clickbait', 'non_clickbait']:
-      
             d_choice = 'clickbait'
             class_label = DISCRIMINATOR_MODELS_PARAMS['clickbait']['class_vocab'][control_attribute]
+            print(control_attribute, class_label)
         else:
             d_choice = 'sentiment'
             class_label = DISCRIMINATOR_MODELS_PARAMS['sentiment']['class_vocab'][control_attribute]
+            print(control_attribute, class_label)
+        print("{} is in discriminator, it has been chosen.".format(str(d_choice)))
+        print("{} is the bag_of_words".format(str(bag_of_words)))
 
+    print("Final choices are bag of words : {} and discriminator {}".format(str(bag_of_words), str(d_choice)))
     out_text = run_pplm_example(pretrained_model=pretrained_model,
                     cond_text=cond_text,
                     uncond=False,
@@ -849,8 +852,7 @@ def generate_text(model, inputs):
                     seed=0,
                     colorama=False,
                     kl_scale=kl_scale)
-
-        
+    
     return {"output_text" : out_text}
 
 if __name__ == "__main__":
