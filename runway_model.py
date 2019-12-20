@@ -350,7 +350,7 @@ def get_bag_of_words_indices(bag_of_words_ids_or_paths: List[str], tokenizer) ->
             filepath = cached_path(BAG_OF_WORDS_ARCHIVE_MAP[id_or_path])
         else:
             filepath = id_or_path
-        with open(filepath, "r") as f:
+        with open(filepath, "r", errors='ignore') as f:
             words = f.read().strip().split("\n")
         bow_indices.append(
             [tokenizer.encode(word.strip(), add_prefix_space=True) for word in
