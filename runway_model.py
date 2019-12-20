@@ -769,7 +769,7 @@ def run_pplm_example(pretrained_model="gpt2-medium",
     return pert_gen_text.replace('<|endoftext|>', '')
 
 
-@runway.setup(options={"size" : category(default='distilgpt2', choices=['gpt2-medium', 'distilgpt2', 'gpt2'])})
+@runway.setup(options={"size" : category(choices=['distilgpt2', 'gpt2-medium', 'gpt2'], default='distilgpt2')})
 def setup(opts):
     size = opts["size"]
     return {"size" : size}
