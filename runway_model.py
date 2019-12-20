@@ -406,7 +406,7 @@ def full_text_generation(model,
     if bag_of_words:
         bow_indices = get_bag_of_words_indices(bag_of_words.split(";"),
                                                tokenizer)
-    print(bag_of_words, classifier)
+    
     if bag_of_words and classifier:
         print("Both PPLM-BoW and PPLM-Discrim are on. This is not optimized.")
         loss_type = PPLM_BOW_DISCRIM
@@ -760,7 +760,7 @@ def run_pplm_example(pretrained_model="gpt2-medium",
                 pert_gen_text = tokenizer.decode(pert_gen_tok_text.tolist()[0])
 
             model
-            print(pert_gen_text.replace('<|endoftext|>', ''))
+            
         except:
             pass
 
@@ -798,7 +798,7 @@ def generate_text(model, inputs):
     length = inputs["length"]
     stepsize = inputs["stepsize"]
     kl_scale = inputs["kl_scale"]
-    temperature = inputs["temperature"]
+    temperature = 1
     gamma = inputs["gamma"]
     top_k = 10
     horizon_length = 1
