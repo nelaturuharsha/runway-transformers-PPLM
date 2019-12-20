@@ -780,11 +780,10 @@ command_inputs = {
                 "control_attributes" : category(default='technology', choices=['legal', 'military', 'politics', 'religion', 'science', 'space', 'technology', 'non_clickbait', 'clickbait', 'very_positive', 'very_negative']),
                 "length" : number(min=10, default=100, step=5, max=600, description="Length of generated text"),
                 "stepsize" : number(min=0.03, default=0.03, step=0.01, max=0.1, description="Step Size for intensity of topic control."),
-                "num_iterations" : number(default=3, step=1, max=5, description="Number of iterations"),
-                "window_length" : number(default=5, step=1, max=10, description="Length of past which is being optimized"),
-                "kl_scale" : number(default=0.01, step=0.01, max=0.1, description="KL-Loss Coefficient"),
-                "temperature" : number(default=1.0, step=0.1, max=4, description="Temperature of generation"),
-                "gamma" : number(default=1.0, step=0.5, max=4, description="Gamma Parameter") 
+                "num_iterations" : number(min=1, default=1, step=1, max=10, description="Number of iterations"),
+                "window_length" : number(min=1, default=5, step=1, max=10, description="Length of past which is being optimized"),
+                "kl_scale" : number(min=0.01, default=0.01, step=0.01, max=0.1, description="KL-Loss Coefficient"),
+                "gamma" : number(min=1.0, default=1.0, step=0.5, max=3, description="Gamma Parameter") 
                 }
 
 command_outputs = {"output_text" : text}
@@ -804,7 +803,7 @@ def generate_text(model, inputs):
     top_k = 10
     horizon_length = 1
     decay = True
-    gm_scale = 0.95
+    gm_scale = 0.99
     control_attribute = inputs["control_attributes"]
     
     print(control_attribute)
