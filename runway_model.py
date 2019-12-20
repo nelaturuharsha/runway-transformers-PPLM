@@ -350,7 +350,7 @@ def get_bag_of_words_indices(bag_of_words_ids_or_paths: List[str], tokenizer) ->
             filepath = cached_path(BAG_OF_WORDS_ARCHIVE_MAP[id_or_path])
         else:
             filepath = id_or_path
-        with open(filepath, "r") as f:
+        with open(filepath, "r", errors='ignore') as f:
             words = f.read().strip().split("\n")
         bow_indices.append(
             [tokenizer.encode(word.strip(), add_prefix_space=True) for word in
@@ -769,7 +769,7 @@ def run_pplm_example(pretrained_model="gpt2-medium",
     return pert_gen_text.replace('<|endoftext|>', '')
 
 
-@runway.setup(options={"size" : category(default='distilgpt2', choices=['gpt2-medium', 'distilgpt2', 'gpt2'])})
+@runway.setup(options={"size" : category(choices=['distilgpt2', 'gpt2-medium', 'gpt2'], default='distilgpt2')})
 def setup(opts):
     size = opts["size"]
     return {"size" : size}
@@ -827,6 +827,7 @@ def generate_text(model, inputs):
         print("{} is the bag_of_words".format(str(bag_of_words)))
 
     print("Final choices are bag of words : {} and discriminator {}".format(str(bag_of_words), str(d_choice)))
+    print("Generating")
     out_text = run_pplm_example(pretrained_model=pretrained_model,
                     cond_text=cond_text,
                     uncond=False,
