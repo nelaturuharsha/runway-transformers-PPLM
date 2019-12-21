@@ -826,8 +826,7 @@ def generate_text(model, inputs):
         print("{} is in discriminator, it has been chosen.".format(str(d_choice)))
         print("{} is the bag_of_words".format(str(bag_of_words)))
 
-    print("Final choices are bag of words : {} and discriminator {}".format(str(bag_of_words), str(d_choice)))
-    print("Generating")
+    
     out_text = run_pplm_example(pretrained_model=pretrained_model,
                     cond_text=cond_text,
                     uncond=False,
