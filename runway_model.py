@@ -778,12 +778,13 @@ def setup(opts):
 command_inputs = {
                 "conditional_text" : text(description="Prefix texts to condition on"),
                 "control_attributes" : category(default='technology', choices=['legal', 'military', 'politics', 'religion', 'science', 'space', 'technology', 'non_clickbait', 'clickbait', 'very_positive', 'very_negative']),
-                "length" : number(min=10, default=100, step=5, max=600, description="Length of generated text"),
+                "length" : number(default=20, step=5, max=500, description="Output Text Length"),
                 "stepsize" : number(min=0.03, default=0.03, step=0.01, max=0.1, description="Step Size for intensity of topic control."),
                 "num_iterations" : number(min=1, default=1, step=1, max=10, description="Number of iterations"),
                 "window_length" : number(min=1, default=5, step=1, max=10, description="Length of past which is being optimized"),
                 "kl_scale" : number(min=0.01, default=0.01, step=0.01, max=0.1, description="KL-Loss Coefficient"),
-                "gamma" : number(min=1.0, default=1.0, step=0.5, max=3, description="Gamma Parameter") 
+                "gamma" : number(min=1.0, default=1.0, step=0.5, max=3, description="Gamma Parameter"),
+                "temperature" : number(default=1.0, min=0, max=3, step=0.1,  description="The high temperature sample displays greater linguistic variety, but the low temperature sample is more grammatically correct. Temperature of 1.0 uses unscaled logits.")
                 }
 
 command_outputs = {"output_text" : text}
@@ -798,7 +799,7 @@ def generate_text(model, inputs):
     length = inputs["length"]
     stepsize = inputs["stepsize"]
     kl_scale = inputs["kl_scale"]
-    temperature = 1
+    temperature = inputs["temperature"]
     gamma = inputs["gamma"]
     top_k = 10
     horizon_length = 1
