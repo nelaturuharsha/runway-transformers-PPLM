@@ -778,7 +778,7 @@ def setup(opts):
 command_inputs = {
                 "conditional_text" : text(description="Prefix texts to condition on"),
                 "control_attributes" : category(default='technology', choices=['legal', 'military', 'politics', 'religion', 'science', 'space', 'technology', 'non_clickbait', 'clickbait', 'very_positive', 'very_negative']),
-                "length" : number(default=20, step=5, max=500, description="Output Text Length"),
+                "length" : number(default=20, min=20, max=500, step=1, description="Output Text Length"),
                 "stepsize" : number(min=0.03, default=0.03, step=0.01, max=0.1, description="Step Size for intensity of topic control."),
                 "num_iterations" : number(min=1, default=1, step=1, max=10, description="Number of iterations"),
                 "window_length" : number(min=1, default=5, step=1, max=10, description="Length of past which is being optimized"),
